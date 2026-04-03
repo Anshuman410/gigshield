@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: gigshield
+    env: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npx prisma db push && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.1

@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Worker {
+  id                  String           @id @default(cuid())
+  name                String
+  platformId          String           @unique
+  email               String           @unique
+  password            String
+  historicalHourlyAvg Float
+  createdAt           DateTime         @default(now())
+  policies            Policy[]
+  shiftSessions       ShiftSession[]
+  earningsLedger      EarningsLedger[]
+}
+
+model Zone {
+  id                 String         @id @default(cuid())
+  city               String
+  name               String
+  baseRiskMultiplier Float
+  historicalSafetyScore Float @default(0.5)
+  policies           Policy[]
+  shiftSessions      ShiftSession[]
+  triggerEvents      TriggerEvent[]
+}
+
+model Policy {
+  id          String   @id @default(cuid())
+  workerId    String
+  zoneId      String
+  premiumPaid Float
+  maxCoverage Float
+  startDate   DateTime
+  endDate     DateTime
+  status      String   // ACTIVE, EXPIRED
+  claims      Claim[]
+  worker      Worker   @relation(fields: [workerId], references: [id])
+  zone        Zone     @relation(fields: [zoneId], references: [id])
+}
+
+model ShiftSession {
+  id              String   @id @default(cuid())
+  workerId        String
+  zoneId          String
+  startTime       DateTime
+  endTime         DateTime?
+  activeHours     Float
+  sessionEarnings Float
+  worker          Worker   @relation(fields: [workerId], references: [id])
+  zone            Zone     @relation(fields: [zoneId], references: [id])
+}
+
+model EarningsLedger {
+  id               String   @id @default(cuid())
+  workerId         String
+  weekStart        DateTime
+  totalEarnings    Float
+  totalActiveHours Float
+  worker           Worker   @relation(fields: [workerId], references: [id])
+}
+
+model TriggerEvent {
+  id       String   @id @default(cuid())
+  zoneId   String
+  eventType String   // RAIN_HEAVY, AQI_SEVERE
+  severity Float
+  timestamp DateTime @default(now())
+  active   Boolean  @default(true)
+  zone     Zone     @relation(fields: [zoneId], references: [id])
+}
+
+model Claim {
+  id          String   @id @default(cuid())
+  policyId    String
+  type        String   // MICRO, SETTLEMENT
+  amount      Float
+  status      String   // PENDING, APPROVED, REJECTED
+  description String?
+  createdAt   DateTime @default(now())
+  policy      Policy   @relation(fields: [policyId], references: [id])
+  fraudLogs   FraudLog[]
+}
+
+model FraudLog {
+  id              String   @id @default(cuid())
+  claimId         String
+  ruleFailed      String
+  confidenceScore Float
+  loggedAt        DateTime @default(now())
+  claim           Claim    @relation(fields: [claimId], references: [id])
+}
