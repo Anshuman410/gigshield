@@ -29,6 +29,8 @@ async function main() {
     data: {
       id: 'W123',
       name: 'Ravi Kumar',
+      email: 'ravi@example.com',
+      password: 'hashedpassword123',
       platformId: 'DEL-9912',
       historicalHourlyAvg: 85.50,
       createdAt: new Date('2025-01-01T00:00:00Z'),
